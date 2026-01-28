@@ -1,0 +1,89 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # =========================================================================
+    # PIPELINES
+    # =========================================================================
+    App\Application\Pipeline\AggregatorPipeline:
+        arguments:
+            $logger: '@monolog.logger'
+
+    App\Application\Pipeline\TransformerPipeline:
+        arguments:
+            $logger: '@monolog.logger'
+
+    # =========================================================================
+    # AGGREGATORS (ordered by priority - higher runs first)
+    # =========================================================================
+
+    # Priority 100: Core data (no dependencies)
+    App\Application\Aggregator\Impl\TagsAggregator:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.aggregator', priority: 100 }
+
+    App\Application\Aggregator\Impl\CommentsAggregator:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.aggregator', priority: 100 }
+
+    # Priority 90: Depends on Section
+    App\Application\Aggregator\Impl\SignaturesAggregator:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.aggregator', priority: 90 }
+
+    App\Application\Aggregator\Impl\MembershipLinksAggregator:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.aggregator', priority: 90 }
+
+    # Priority 80: Multimedia
+    App\Application\Aggregator\Impl\MultimediaOpeningAggregator:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.aggregator', priority: 80 }
+
+    App\Application\Aggregator\Impl\MultimediaAggregator:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.aggregator', priority: 80 }
+
+    App\Application\Aggregator\Impl\PhotosFromBodyAggregator:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.aggregator', priority: 80 }
+
+    # Priority 70: Related content (depends on Signatures)
+    App\Application\Aggregator\Impl\InsertedNewsAggregator:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.aggregator', priority: 70 }
+
+    App\Application\Aggregator\Impl\RecommendedEditorialsAggregator:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.aggregator', priority: 70 }
+
+    # =========================================================================
+    # TRANSFORMERS (to be added in future implementation)
+    # Priority: Higher runs first
+    # =========================================================================
+    # Transformers will be added here as they are implemented
+    # Example:
+    # App\Application\Transformer\Impl\EditorialBaseTransformer:
+    #     arguments:
+    #         $logger: '@monolog.logger'
+    #     tags:
+    #         - { name: 'app.response_transformer', priority: 100 }
