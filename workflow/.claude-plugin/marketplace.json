@@ -1,0 +1,37 @@
+{
+  "name": "workflow-marketplace",
+  "owner": {
+    "name": "arazvan-ec",
+    "url": "https://github.com/arazvan-ec"
+  },
+  "metadata": {
+    "description": "Compound engineering plugins for Claude Code",
+    "version": "2.0.0"
+  },
+  "plugins": [
+    {
+      "name": "multi-agent-workflow",
+      "description": "Compound engineering framework for multi-agent AI development. 16 specialized agents in 5 categories (roles, review, research, workflow, design), 7 workflow commands (plan, work, review, compound, role, sync, status), 10 skills, and quality-gated checkpoints with DDD architecture support.",
+      "version": "2.0.0",
+      "author": {
+        "name": "arazvan-ec",
+        "url": "https://github.com/arazvan-ec"
+      },
+      "homepage": "https://github.com/arazvan-ec/workflow",
+      "tags": [
+        "compound-engineering",
+        "multi-agent",
+        "workflow-automation",
+        "parallel-development",
+        "ddd",
+        "domain-driven-design",
+        "tdd",
+        "test-driven-development",
+        "code-review",
+        "quality-assurance",
+        "team-coordination"
+      ],
+      "source": "./plugins/multi-agent-workflow"
+    }
+  ]
+}
