@@ -2,12 +2,14 @@
 
 namespace App;
 
+use App\DependencyInjection\Compiler\AggregatorPipelineCompiler;
 use App\DependencyInjection\Compiler\BodyDataTransformerCompiler;
 use App\DependencyInjection\Compiler\EditorialOrchestratorCompiler;
 use App\DependencyInjection\Compiler\MediaDataTransformerCompiler;
 use App\DependencyInjection\Compiler\MultimediaFactoryCompiler;
 use App\DependencyInjection\Compiler\MultimediaOrchestratorCompiler;
 use App\DependencyInjection\Compiler\RelatedContentStrategyCompiler;
+use App\DependencyInjection\Compiler\TransformerPipelineCompiler;
 use App\DependencyInjection\Compiler\WidgetDataTransformerCompiler;
 use App\DependencyInjection\Compiler\WidgetLegacyCreatorHandlerCompiler;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -30,5 +32,7 @@ class Kernel extends BaseKernel
         $container->addCompilerPass(new WidgetLegacyCreatorHandlerCompiler());
         $container->addCompilerPass(new WidgetDataTransformerCompiler());
         $container->addCompilerPass(new RelatedContentStrategyCompiler());
+        $container->addCompilerPass(new AggregatorPipelineCompiler());
+        $container->addCompilerPass(new TransformerPipelineCompiler());
     }
 }
