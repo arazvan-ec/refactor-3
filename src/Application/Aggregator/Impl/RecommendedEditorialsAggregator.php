@@ -6,11 +6,11 @@ namespace App\Application\Aggregator\Impl;
 
 use App\Application\Aggregator\AbstractAsyncAggregator;
 use App\Application\Aggregator\AggregationContext;
+use App\Application\Aggregator\Trait\SignatureFetcherTrait;
 use App\Application\DataTransformer\Apps\JournalistsDataTransformer;
 use Ec\Editorial\Domain\Model\Editorial;
 use Ec\Editorial\Domain\Model\EditorialId;
 use Ec\Editorial\Domain\Model\QueryEditorialClient;
-use Ec\Editorial\Domain\Model\Signature;
 use Ec\Journalist\Domain\Model\JournalistFactory;
 use Ec\Journalist\Domain\Model\QueryJournalistClient;
 use Ec\Section\Domain\Model\QuerySectionClient;
@@ -23,6 +23,8 @@ use Psr\Log\LoggerInterface;
  */
 final class RecommendedEditorialsAggregator extends AbstractAsyncAggregator
 {
+    use SignatureFetcherTrait;
+
     public function __construct(
         private readonly QueryEditorialClient $queryEditorialClient,
         private readonly QuerySectionClient $querySectionClient,
@@ -98,6 +100,32 @@ final class RecommendedEditorialsAggregator extends AbstractAsyncAggregator
         ];
     }
 
+    // SignatureFetcherTrait abstract methods
+    protected function getQueryJournalistClient(): QueryJournalistClient
+    {
+        return $this->queryJournalistClient;
+    }
+
+    protected function getJournalistFactory(): JournalistFactory
+    {
+        return $this->journalistFactory;
+    }
+
+    protected function getJournalistsDataTransformer(): JournalistsDataTransformer
+    {
+        return $this->journalistsDataTransformer;
+    }
+
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
+    protected function getTraitLogContext(): string
+    {
+        return 'recommendedEditorials';
+    }
+
     /**
      * Fetch and process a single recommended editorial.
      *
@@ -116,7 +144,7 @@ final class RecommendedEditorialsAggregator extends AbstractAsyncAggregator
             /** @var Section $section */
             $section = $this->querySectionClient->findSectionById($editorial->sectionId());
 
-            $signatures = $this->fetchSignatures($editorial, $section);
+            $signatures = $this->fetchSignaturesForEditorial($editorial, $section);
             $multimediaId = $this->getMultimediaId($editorial);
 
             return [
@@ -136,60 +164,12 @@ final class RecommendedEditorialsAggregator extends AbstractAsyncAggregator
     }
 
     /**
-     * Fetch signatures for an editorial.
-     *
-     * @return array<array<string, mixed>>
-     */
-    private function fetchSignatures(Editorial $editorial, Section $section): array
-    {
-        $result = [];
-
-        /** @var Signature $signature */
-        foreach ($editorial->signatures()->getArrayCopy() as $signature) {
-            $transformed = $this->fetchSignature($signature->id()->id(), $section);
-            if (!empty($transformed)) {
-                $result[] = $transformed;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Fetch and transform a single signature.
-     *
-     * @return array<string, mixed>
-     */
-    private function fetchSignature(string $aliasId, Section $section): array
-    {
-        try {
-            $aliasIdModel = $this->journalistFactory->buildAliasId($aliasId);
-            $journalist = $this->queryJournalistClient->findJournalistByAliasId($aliasIdModel);
-
-            return $this->journalistsDataTransformer
-                ->write($aliasId, $journalist, $section, false)
-                ->read();
-        } catch (\Throwable $e) {
-            $this->logger->warning('Failed to fetch signature for recommended editorial', [
-                'aliasId' => $aliasId,
-                'error' => $e->getMessage(),
-            ]);
-
-            return [];
-        }
-    }
-
-    /**
-     * Get multimedia ID from editorial.
+     * Get multimedia ID from editorial, with fallback to metaImage.
      */
     private function getMultimediaId(Editorial $editorial): string
     {
         $multimediaId = $editorial->multimedia()->id()->id();
 
-        if (!empty($multimediaId)) {
-            return $multimediaId;
-        }
-
-        return $editorial->metaImage() ?? '';
+        return !empty($multimediaId) ? $multimediaId : ($editorial->metaImage() ?? '');
     }
 }

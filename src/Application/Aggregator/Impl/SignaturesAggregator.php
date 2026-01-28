@@ -6,8 +6,9 @@ namespace App\Application\Aggregator\Impl;
 
 use App\Application\Aggregator\AbstractAsyncAggregator;
 use App\Application\Aggregator\AggregationContext;
+use App\Application\Aggregator\AggregatorPriority;
 use App\Application\DataTransformer\Apps\JournalistsDataTransformer;
-use Ec\Editorial\Domain\Model\EditorialBlog;
+use App\Application\Editorial\EditorialTypeConstants;
 use Ec\Editorial\Domain\Model\Signature;
 use Ec\Journalist\Domain\Model\Journalist;
 use Ec\Journalist\Domain\Model\JournalistFactory;
@@ -19,8 +20,6 @@ use Psr\Log\LoggerInterface;
  */
 final class SignaturesAggregator extends AbstractAsyncAggregator
 {
-    private const TWITTER_TYPES = [EditorialBlog::EDITORIAL_TYPE];
-
     public function __construct(
         private readonly QueryJournalistClient $queryJournalistClient,
         private readonly JournalistFactory $journalistFactory,
@@ -37,7 +36,7 @@ final class SignaturesAggregator extends AbstractAsyncAggregator
 
     public function getPriority(): int
     {
-        return 90;
+        return AggregatorPriority::HIGH;
     }
 
     public function aggregate(AggregationContext $context): array
@@ -46,7 +45,7 @@ final class SignaturesAggregator extends AbstractAsyncAggregator
 
         return [
             'signatures' => $editorial->signatures()->getArrayCopy(),
-            'hasTwitter' => \in_array($editorial->editorialType(), self::TWITTER_TYPES, true),
+            'hasTwitter' => EditorialTypeConstants::shouldIncludeTwitter($editorial->editorialType()),
         ];
     }
 
