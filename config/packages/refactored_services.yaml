@@ -1,0 +1,86 @@
+# Configuration for refactored services following SOLID principles
+# This file registers new services created during the refactoring process
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # ==========================================================================
+    # EDITORIAL SERVICES
+    # ==========================================================================
+
+    # Signature Fetcher - Extracts journalist signature fetching logic
+    App\Application\Service\Editorial\SignatureFetcherInterface:
+        alias: App\Application\Service\Editorial\SignatureFetcher
+
+    App\Application\Service\Editorial\SignatureFetcher:
+        arguments:
+            $logger: '@monolog.logger'
+
+    # Membership Link Resolver - Handles membership URL resolution
+    App\Application\Service\Editorial\MembershipLinkResolverInterface:
+        alias: App\Application\Service\Editorial\MembershipLinkResolver
+
+    App\Application\Service\Editorial\MembershipLinkResolver: ~
+
+    # ==========================================================================
+    # MULTIMEDIA SERVICES
+    # ==========================================================================
+
+    # Multimedia Processor - Replaces MultimediaTrait with proper DI
+    App\Application\Service\Multimedia\MultimediaProcessorInterface:
+        alias: App\Application\Service\Multimedia\MultimediaProcessor
+
+    App\Application\Service\Multimedia\MultimediaProcessor:
+        arguments:
+            $thumbor: '@App\Infrastructure\Service\Thumbor'
+
+    # Multimedia Fetcher - Encapsulates async multimedia fetching
+    App\Application\Service\Multimedia\MultimediaFetcherInterface:
+        alias: App\Application\Service\Multimedia\MultimediaFetcher
+
+    App\Application\Service\Multimedia\MultimediaFetcher:
+        arguments:
+            $logger: '@monolog.logger'
+
+    # ==========================================================================
+    # RELATED CONTENT STRATEGIES (Strategy Pattern)
+    # ==========================================================================
+
+    # Related Content Handler - Coordinates all strategies
+    App\Application\Strategy\RelatedContent\RelatedContentHandler:
+        arguments:
+            $strategies: !tagged_iterator app.related_content_strategy
+
+    # Inserted News Strategy
+    App\Application\Strategy\RelatedContent\InsertedNewsStrategy:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.related_content_strategy' }
+
+    # Recommended Editorials Strategy
+    App\Application\Strategy\RelatedContent\RecommendedEditorialsStrategy:
+        arguments:
+            $logger: '@monolog.logger'
+        tags:
+            - { name: 'app.related_content_strategy' }
+
+    # ==========================================================================
+    # RESPONSE BUILDER (Builder Pattern)
+    # ==========================================================================
+
+    App\Application\Builder\EditorialResponseBuilder: ~
+
+    # ==========================================================================
+    # REFACTORED ORCHESTRATOR
+    # ==========================================================================
+
+    # New refactored orchestrator - disabled by default, enable to use
+    # App\Orchestrator\Chain\EditorialOrchestratorRefactored:
+    #     arguments:
+    #         $extension: '%env(resolve:EXTENSION)%'
+    #         $logger: '@monolog.logger'
+    #     tags:
+    #         - { name: 'app.orchestrators' }
